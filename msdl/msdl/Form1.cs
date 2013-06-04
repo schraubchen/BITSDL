@@ -12,6 +12,13 @@ using System.IO;
 using SharpBits.Base;
 using DownloadCtrl;
 
+/*
+ * TODO: 
+ *      exchange the download control with a datagridview.
+ *      build a progress bar column http://stackoverflow.com/questions/4646920/populating-a-datagridview-with-text-and-progressbars
+ */
+
+
 namespace msdl
 {
     public partial class Form1 : Form
@@ -31,18 +38,34 @@ namespace msdl
             downloadManager = new BitsManager();
             downloadManager.EnumJobs(JobOwner.CurrentUser);
 
-            loadDownloadControls();
+            toolStripStatusLabel1.Text = string.Format("{0} job/s completed in the background.", loadDownloadControls());
         }
 
-        private void loadDownloadControls()
+        /// <summary>
+        /// Returns the count of completed jobs.
+        /// </summary>
+        /// <returns></returns>
+        private int loadDownloadControls()
         {
+            Console.WriteLine(string.Format("Jobs found: {0}", downloadManager.Jobs.Values.Count));
+            
+            int completed = 0;
             foreach (var job in downloadManager.Jobs.Values)
             {
-                DownloadControl dl = new DownloadControl(job);
-                dl.Width = mainPanel.ClientRectangle.Width - 25;
-                dl.Show();
-                mainPanel.Controls.Add(dl);
+                if (job.State == JobState.Transferred)
+                {
+                    job.Complete();
+                    completed++;
+                }
+                else
+                {
+                    DownloadControl dl = new DownloadControl(job);
+                    dl.Width = mainPanel.ClientRectangle.Width - 25;
+                    dl.Show();
+                    mainPanel.Controls.Add(dl);
+                }
             }
+            return completed;
         }
 
         private void addToolStripMenuItem_Click(object sender, EventArgs e)

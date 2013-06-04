@@ -50,6 +50,7 @@
             this.tbURL.Name = "tbURL";
             this.tbURL.Size = new System.Drawing.Size(534, 20);
             this.tbURL.TabIndex = 1;
+            this.tbURL.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tbURL_KeyDown);
             // 
             // btnOK
             // 

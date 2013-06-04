@@ -24,5 +24,16 @@ namespace msdl
             downloadURL = tbURL.Text;
             this.DialogResult = System.Windows.Forms.DialogResult.OK;
         }
+
+        private void tbURL_KeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.KeyCode)
+            {
+                case Keys.Enter:
+                    downloadURL = tbURL.Text;
+                    this.DialogResult = System.Windows.Forms.DialogResult.OK;
+                    break;
+            }
+        }
     }
 }

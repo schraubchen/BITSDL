@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
 using SharpBits.Base;
 
 namespace DownloadCtrl
@@ -21,6 +22,7 @@ namespace DownloadCtrl
 
             DownloadJob = job;
             DownloadJob.OnJobModified += DownloadJob_OnJobModified;
+            DownloadJob.OnJobTransferred += DownloadJob_OnJobTransferred;
 
             tbFileName.Text = DownloadJob.JobId.ToString();
             tbStatus.Text = DownloadJob.State.ToString();
@@ -31,25 +33,59 @@ namespace DownloadCtrl
 
         void DownloadJob_OnJobModified(object sender, JobNotificationEventArgs e)
         {
+            Console.WriteLine(string.Format("Job modified! ID:{0}", DownloadJob.JobId));
+
             ManageProgressBar();
             ManageButtonState();
             tbStatus.Text = DownloadJob.State.ToString();
+
+            if (DownloadJob.State == JobState.Transferred)
+                DownloadJob.Complete();
+
+            this.Invalidate();
+            this.Update();
+        }
+
+        void DownloadJob_OnJobTransferred(object sender, JobNotificationEventArgs e)
+        {
+            Console.WriteLine(string.Format("Job Transferred! ID:{0}", DownloadJob.JobId));
+            ManageButtonState();
+            ManageProgressBar();
+            DownloadJob.Complete();
         }
 
         private void ManageButtonState()
         {
-            if (DownloadJob.State == JobState.Transferring)
-                btnPauseResume.Text = "Pause";
-            else if( DownloadJob.State == JobState.Suspended)
-                btnPauseResume.Text = "Resume";
+            switch (DownloadJob.State)
+            {
+                case JobState.Suspended:
+                    btnPauseResume.Text = "Resume";
+                    break;
+                case JobState.Error:
+                    btnPauseResume.Enabled = false;
+                    btnPauseResume.Text = "Error!";
+                    break;
+                case JobState.Transferred:
+                    btnPauseResume.Enabled = false;
+                    break;
+                default:
+                    btnPauseResume.Text = "Pause";
+                    break;
+            }
         }
 
         private void ManageProgressBar()
         {
             if (DownloadJob.Progress.BytesTotal != 0)
-                progressBar1.Value = (int)((100 / DownloadJob.Progress.BytesTotal) * DownloadJob.Progress.BytesTransferred);
+            {
+                float temp = 100 / DownloadJob.Progress.BytesTotal;
+                float temp2 = temp / DownloadJob.Progress.BytesTransferred;
+                progressBar1.Value = Convert.ToInt32(temp2);
+            }
             else
+            {
                 progressBar1.Value = 0;
+            }
         }
 
         private void btnPauseResume_Click(object sender, EventArgs e)
