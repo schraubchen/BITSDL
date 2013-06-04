@@ -13,9 +13,14 @@ using SharpBits.Base;
 using DownloadCtrl;
 
 /*
- * TODO: 
- *      exchange the download control with a datagridview.
- *      build a progress bar column http://stackoverflow.com/questions/4646920/populating-a-datagridview-with-text-and-progressbars
+ * TODO:
+ *      High priority:
+ *          exchange the download control with a datagridview.
+ *          build a progress bar column http://stackoverflow.com/questions/4646920/populating-a-datagridview-with-text-and-progressbars
+ *          make the download directory configurable.
+ *
+ *      Low priority:
+ *          build a tray status monitor.
  */
 
 
