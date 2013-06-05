@@ -10,19 +10,17 @@ using System.Windows.Forms;
 using System.IO;
 
 using SharpBits.Base;
-using DownloadCtrl;
 
 /*
  * TODO:
  *      High priority:
- *          exchange the download control with a datagridview.
+ *          implement the events properly!
  *          build a progress bar column http://stackoverflow.com/questions/4646920/populating-a-datagridview-with-text-and-progressbars
  *          make the download directory configurable.
  *
  *      Low priority:
  *          build a tray status monitor.
  */
-
 
 namespace msdl
 {
@@ -37,40 +35,59 @@ namespace msdl
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            if(!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Downloads"))
+            if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Downloads"))
                 Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Downloads");
-            
+
             downloadManager = new BitsManager();
             downloadManager.EnumJobs(JobOwner.CurrentUser);
 
-            toolStripStatusLabel1.Text = string.Format("{0} job/s completed in the background.", loadDownloadControls());
-        }
-
-        /// <summary>
-        /// Returns the count of completed jobs.
-        /// </summary>
-        /// <returns></returns>
-        private int loadDownloadControls()
-        {
-            Console.WriteLine(string.Format("Jobs found: {0}", downloadManager.Jobs.Values.Count));
-            
-            int completed = 0;
             foreach (var job in downloadManager.Jobs.Values)
             {
-                if (job.State == JobState.Transferred)
-                {
-                    job.Complete();
-                    completed++;
-                }
-                else
-                {
-                    DownloadControl dl = new DownloadControl(job);
-                    dl.Width = mainPanel.ClientRectangle.Width - 25;
-                    dl.Show();
-                    mainPanel.Controls.Add(dl);
-                }
+                job.OnJobModified += job_OnJobModified;
+                job.OnJobTransferred += job_OnJobTransferred;
             }
-            return completed;
+
+            dataGridView1.Rows.AddRange(getDownloadJobsAsRows().ToArray());
+        }
+
+        void job_OnJobTransferred(object sender, JobNotificationEventArgs e)
+        {
+            Console.WriteLine("Some job was transfered.");
+        }
+
+        void job_OnJobModified(object sender, JobNotificationEventArgs e)
+        {
+            Console.WriteLine("Some job was modified.");
+        }
+
+        private IEnumerable<DataGridViewRow> getDownloadJobsAsRows()
+        {
+            foreach (var job in downloadManager.Jobs.Values)
+            {
+                DataGridViewRow row = new DataGridViewRow();
+                row.CreateCells(dataGridView1);
+                row.Cells[0].Value = job.JobId;
+                row.Cells[1].Value = getButtonText(job);
+                if (row.Cells[1].Value.ToString() == "Done")
+                    row.Cells[1].ReadOnly = true;
+                row.Cells[2].Value = String.Format("{0}/{1}", job.Progress.BytesTransferred, job.Progress.BytesTotal);
+                row.Cells[3].Value = job.State.ToString();
+                yield return row;
+            }
+        }
+
+        private string getButtonText(BitsJob job)
+        {
+            switch (job.State)
+            {
+                case JobState.Suspended:
+                    return "Resume";
+                case JobState.Transferred:
+                case JobState.Acknowledged:
+                    return "Done";
+                default:
+                    return "Cancel";
+            }
         }
 
         private void addToolStripMenuItem_Click(object sender, EventArgs e)
@@ -81,18 +98,6 @@ namespace msdl
                 BitsJob job = downloadManager.CreateJob("File Download", JobType.Download);
                 job.AddFile(dl.downloadURL, makeDownloadPath(dl.downloadURL));
                 job.Resume();
-                DownloadControl ctrl = new DownloadControl(job);
-                ctrl.Width = mainPanel.ClientRectangle.Width - 25;
-                ctrl.Show();
-                mainPanel.Controls.Add(ctrl);
-            }
-        }
-
-        private void mainPanel_Resize(object sender, EventArgs e)
-        {
-            foreach (DownloadControl ctrl in mainPanel.Controls)
-            {
-                ctrl.Width = mainPanel.ClientRectangle.Width - 25;
             }
         }
 
@@ -102,6 +107,14 @@ namespace msdl
             fileName += Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Downloads\\";
             fileName += url.Substring(url.LastIndexOf("/"));
             return fileName;
+        }
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex == 1) // aka button, do this properly!!!
+            {
+
+            }
         }
     }
 }

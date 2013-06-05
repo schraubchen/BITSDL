@@ -139,10 +139,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\DownloadControl\DownloadCtrl.csproj">
-      <Project>{2d4d0274-ae6d-416b-bca8-18eab065032c}</Project>
-      <Name>DownloadCtrl</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\SharpBITS.Base\SharpBITS.Base.csproj">
       <Project>{b39fdb92-7420-487e-8b44-d9bc0b88d857}</Project>
       <Name>SharpBITS.Base</Name>
