@@ -14,7 +14,6 @@ using SharpBits.Base;
 /*
  * TODO:
  *      High priority:
- *          implement the events properly!
  *          build a progress bar column http://stackoverflow.com/questions/4646920/populating-a-datagridview-with-text-and-progressbars
  *          make the download directory configurable.
  *
@@ -39,41 +38,74 @@ namespace msdl
                 Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Downloads");
 
             downloadManager = new BitsManager();
+            downloadManager.OnJobModified += downloadManager_OnJobModified;
+            downloadManager.OnJobTransferred += downloadManager_OnJobTransferred;
             downloadManager.EnumJobs(JobOwner.CurrentUser);
 
             foreach (var job in downloadManager.Jobs.Values)
             {
-                job.OnJobModified += job_OnJobModified;
-                job.OnJobTransferred += job_OnJobTransferred;
+                if (job.State == JobState.Transferred)
+                {
+                    job.Complete();
+                }
+                else
+                {
+                    addJobFlags(job);
+                }
             }
 
             dataGridView1.Rows.AddRange(getDownloadJobsAsRows().ToArray());
         }
 
-        void job_OnJobTransferred(object sender, JobNotificationEventArgs e)
+        private void addJobFlags(BitsJob job)
         {
+            job.NotificationFlags = NotificationFlags.JobModified | NotificationFlags.JobTransferred | NotificationFlags.JobErrorOccured;
+        }
+
+        void downloadManager_OnJobTransferred(object sender, NotificationEventArgs e)
+        {
+            e.Job.Complete();
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                if (e.Job.JobId.ToString() == row.Cells[4].Value.ToString())
+                    row.Cells[3].Value = e.Job.State.ToString();
+            }
             Console.WriteLine("Some job was transfered.");
         }
 
-        void job_OnJobModified(object sender, JobNotificationEventArgs e)
+        
+        public void downloadManager_OnJobModified(object sender, NotificationEventArgs e)
         {
-            Console.WriteLine("Some job was modified.");
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                if (e.Job.JobId.ToString() == row.Cells[4].Value.ToString())
+                {
+                    row.Cells[2].Value = String.Format("{0}/{1}", e.Job.Progress.BytesTransferred, e.Job.Progress.BytesTotal);
+                    row.Cells[3].Value = e.Job.State.ToString();
+                }
+            }
+
+            Console.WriteLine(string.Format("Job {0} was modified.", e.Job.JobId));
         }
 
         private IEnumerable<DataGridViewRow> getDownloadJobsAsRows()
         {
             foreach (var job in downloadManager.Jobs.Values)
-            {
-                DataGridViewRow row = new DataGridViewRow();
-                row.CreateCells(dataGridView1);
-                row.Cells[0].Value = job.JobId;
-                row.Cells[1].Value = getButtonText(job);
-                if (row.Cells[1].Value.ToString() == "Done")
-                    row.Cells[1].ReadOnly = true;
-                row.Cells[2].Value = String.Format("{0}/{1}", job.Progress.BytesTransferred, job.Progress.BytesTotal);
-                row.Cells[3].Value = job.State.ToString();
-                yield return row;
-            }
+                yield return makeRow(job);
+        }
+
+        private DataGridViewRow makeRow(BitsJob job)
+        {
+            DataGridViewRow row = new DataGridViewRow();
+            row.CreateCells(dataGridView1);
+            row.Cells[0].Value = job.JobId;
+            row.Cells[1].Value = getButtonText(job);
+            if (row.Cells[1].Value.ToString() == "Done")
+                row.Cells[1].ReadOnly = true;
+            row.Cells[2].Value = String.Format("{0}/{1}", job.Progress.BytesTransferred, job.Progress.BytesTotal);
+            row.Cells[3].Value = job.State.ToString();
+            row.Cells[4].Value = job.JobId.ToString();
+            return row;
         }
 
         private string getButtonText(BitsJob job)
@@ -97,7 +129,9 @@ namespace msdl
             {
                 BitsJob job = downloadManager.CreateJob("File Download", JobType.Download);
                 job.AddFile(dl.downloadURL, makeDownloadPath(dl.downloadURL));
+                addJobFlags(job);
                 job.Resume();
+                dataGridView1.Rows.Add(makeRow(job));
             }
         }
 
