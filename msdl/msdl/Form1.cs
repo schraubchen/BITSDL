@@ -18,6 +18,9 @@ using SharpBits.Base;
  *          make the download directory configurable.
  *          remove the column IDs, exchange them for names.
  *          implement a timer to manage the labels on the buttons and stuff.
+ *          implement a possibility to start a job with multiple files.
+ *          implement a possibility to add files to a running job
+ *          implement a possibility to change job priorities.
  *
  *      Low priority:
  *          build a tray status monitor.
