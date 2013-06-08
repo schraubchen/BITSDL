@@ -127,7 +127,7 @@ namespace msdl
         private void addToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var dl = new NewDownload();
-            if (dl.ShowDialog() == DialogResult.OK)
+            if (dl.ShowDialog() == DialogResult.OK && dl.DownloadUrl.Length > 0)
             {
                 var job = _downloadManager.CreateJob("File Download", JobType.Download);
                 job.AddFile(dl.DownloadUrl, MakeDownloadPath(dl.DownloadUrl));

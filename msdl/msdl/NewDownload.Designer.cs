@@ -17,7 +17,7 @@
             {
                 components.Dispose();
             }
-            base.Dispose(disposing);
+            base.Dispose(disposing);   
         }
 
         #region Windows Form Designer generated code
@@ -31,6 +31,7 @@
             this.lblURL = new System.Windows.Forms.Label();
             this.tbURL = new System.Windows.Forms.TextBox();
             this.btnOK = new System.Windows.Forms.Button();
+            this.btnCancel = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // lblURL
@@ -54,7 +55,7 @@
             // 
             // btnOK
             // 
-            this.btnOK.Location = new System.Drawing.Point(472, 57);
+            this.btnOK.Location = new System.Drawing.Point(391, 56);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(75, 23);
             this.btnOK.TabIndex = 2;
@@ -62,11 +63,22 @@
             this.btnOK.UseVisualStyleBackColor = true;
             this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
             // 
+            // btnCancel
+            // 
+            this.btnCancel.Location = new System.Drawing.Point(472, 57);
+            this.btnCancel.Name = "btnCancel";
+            this.btnCancel.Size = new System.Drawing.Size(75, 23);
+            this.btnCancel.TabIndex = 3;
+            this.btnCancel.Text = "Abbrechen";
+            this.btnCancel.UseVisualStyleBackColor = true;
+            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
+            // 
             // NewDownload
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(559, 92);
+            this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
             this.Controls.Add(this.tbURL);
             this.Controls.Add(this.lblURL);
@@ -83,5 +95,6 @@
         private System.Windows.Forms.Label lblURL;
         private System.Windows.Forms.TextBox tbURL;
         private System.Windows.Forms.Button btnOK;
+        private System.Windows.Forms.Button btnCancel;
     }
 }

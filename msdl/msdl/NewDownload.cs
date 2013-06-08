@@ -18,6 +18,11 @@ namespace msdl
             DialogResult = DialogResult.OK;
         }
 
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
+        }
+
         private void tbURL_KeyDown(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode)
