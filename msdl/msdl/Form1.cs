@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.IO;
-
+using System.Linq;
+using System.Windows.Forms;
 using SharpBits.Base;
 
 /*
@@ -30,7 +24,7 @@ namespace msdl
 {
     public partial class Form1 : Form
     {
-        private BitsManager downloadManager;
+        private BitsManager _downloadManager;
 
         public Form1()
         {
@@ -42,28 +36,29 @@ namespace msdl
             if (!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Downloads"))
                 Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Downloads");
 
-            downloadManager = new BitsManager();
-            downloadManager.OnJobModified += downloadManager_OnJobModified;
-            downloadManager.OnJobTransferred += downloadManager_OnJobTransferred;
-            downloadManager.EnumJobs(JobOwner.CurrentUser);
-            
-            foreach (var job in downloadManager.Jobs.Values)
+            _downloadManager = new BitsManager();
+            _downloadManager.OnJobModified += downloadManager_OnJobModified;
+            _downloadManager.OnJobTransferred += downloadManager_OnJobTransferred;
+            _downloadManager.EnumJobs(JobOwner.CurrentUser);
+
+            foreach (var job in _downloadManager.Jobs.Values)
             {
                 if (job.State == JobState.Transferred)
                     job.Complete();
                 else
-                    addJobFlags(job);
+                    AddJobFlags(job);
             }
 
-            dataGridView1.Rows.AddRange(getDownloadJobsAsRows().ToArray());
+            dataGridView1.Rows.AddRange(GetDownloadJobsAsRows().ToArray());
         }
 
-        private void addJobFlags(BitsJob job)
+        private static void AddJobFlags(BitsJob job)
         {
-            job.NotificationFlags = NotificationFlags.JobModified | NotificationFlags.JobTransferred | NotificationFlags.JobErrorOccured;
+            job.NotificationFlags = NotificationFlags.JobModified | NotificationFlags.JobTransferred |
+                                    NotificationFlags.JobErrorOccured;
         }
 
-        void downloadManager_OnJobTransferred(object sender, NotificationEventArgs e)
+        private void downloadManager_OnJobTransferred(object sender, NotificationEventArgs e)
         {
             e.Job.Complete();
             foreach (DataGridViewRow row in dataGridView1.Rows)
@@ -74,7 +69,7 @@ namespace msdl
             Console.WriteLine("Some job was transfered.");
         }
 
-        
+
         public void downloadManager_OnJobModified(object sender, NotificationEventArgs e)
         {
             foreach (DataGridViewRow row in dataGridView1.Rows)
@@ -89,15 +84,14 @@ namespace msdl
             Console.WriteLine(string.Format("Job {0} was modified.", e.Job.JobId));
         }
 
-        private IEnumerable<DataGridViewRow> getDownloadJobsAsRows()
+        private IEnumerable<DataGridViewRow> GetDownloadJobsAsRows()
         {
-            foreach (var job in downloadManager.Jobs.Values)
-                yield return makeRow(job);
+            return _downloadManager.Jobs.Values.Select(MakeRow);
         }
 
-        private DataGridViewRow makeRow(BitsJob job)
+        private DataGridViewRow MakeRow(BitsJob job)
         {
-            DataGridViewRow row = new DataGridViewRow();
+            var row = new DataGridViewRow();
             row.CreateCells(dataGridView1);
             row.Cells[0].Value = job.JobId;
             row.Cells[1].Value = getButtonText(job);
@@ -125,20 +119,20 @@ namespace msdl
 
         private void addToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            NewDownload dl = new NewDownload();
+            var dl = new NewDownload();
             if (dl.ShowDialog() == DialogResult.OK)
             {
-                BitsJob job = downloadManager.CreateJob("File Download", JobType.Download);
-                job.AddFile(dl.downloadURL, makeDownloadPath(dl.downloadURL));
-                addJobFlags(job);
+                var job = _downloadManager.CreateJob("File Download", JobType.Download);
+                job.AddFile(dl.DownloadUrl, MakeDownloadPath(dl.DownloadUrl));
+                AddJobFlags(job);
                 job.Resume();
-                dataGridView1.Rows.Add(makeRow(job));
+                dataGridView1.Rows.Add(MakeRow(job));
             }
         }
 
-        private string makeDownloadPath(string url)
+        private static string MakeDownloadPath(string url)
         {
-            string fileName = "";
+            var fileName = "";
             fileName += Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\Downloads\\";
             fileName += url.Substring(url.LastIndexOf("/"));
             return fileName;
@@ -149,18 +143,18 @@ namespace msdl
             switch (e.ColumnIndex)
             {
                 case 1: // aka button, do this properly!!!
-                    foreach (var job in downloadManager.Jobs.Values)
+                    foreach (var job in _downloadManager.Jobs.Values)
                     {
                         if (dataGridView1.Rows[e.RowIndex].Cells[4].Value.ToString() == job.JobId.ToString())
                         {
-                            manageJobState(dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), job);
+                            ManageJobState(dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), job);
                         }
                     }
                     break;
             }
         }
 
-        private void manageJobState(string button, BitsJob job)
+        private static void ManageJobState(string button, BitsJob job)
         {
             switch (button)
             {
