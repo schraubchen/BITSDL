@@ -12,7 +12,7 @@ namespace msdl
 {
     public partial class NewDownload : Form
     {
-        public string downloadURL;
+        public string downloadURL {get; private set;}
 
         public NewDownload()
         {

@@ -26,17 +26,13 @@ namespace DownloadKiller
             manager.EnumJobs(JobOwner.CurrentUser);
 
             foreach (var job in manager.Jobs.Values)
-            {
                 listBox1.Items.Add(job.DisplayName);
-            }
         }
 
         private void btnKill_Click(object sender, EventArgs e)
         {
             foreach (var job in manager.Jobs.Values)
-            {
                 job.Cancel();  
-            }
 
             listBox1.Items.Clear();
         }

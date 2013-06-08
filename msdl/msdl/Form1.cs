@@ -16,6 +16,8 @@ using SharpBits.Base;
  *      High priority:
  *          build a progress bar column http://stackoverflow.com/questions/4646920/populating-a-datagridview-with-text-and-progressbars
  *          make the download directory configurable.
+ *          remove the column IDs, exchange them for names.
+ *          implement a timer to manage the labels on the buttons and stuff.
  *
  *      Low priority:
  *          build a tray status monitor.
@@ -41,17 +43,13 @@ namespace msdl
             downloadManager.OnJobModified += downloadManager_OnJobModified;
             downloadManager.OnJobTransferred += downloadManager_OnJobTransferred;
             downloadManager.EnumJobs(JobOwner.CurrentUser);
-
+            
             foreach (var job in downloadManager.Jobs.Values)
             {
                 if (job.State == JobState.Transferred)
-                {
                     job.Complete();
-                }
                 else
-                {
                     addJobFlags(job);
-                }
             }
 
             dataGridView1.Rows.AddRange(getDownloadJobsAsRows().ToArray());
@@ -145,9 +143,30 @@ namespace msdl
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == 1) // aka button, do this properly!!!
+            switch (e.ColumnIndex)
             {
+                case 1: // aka button, do this properly!!!
+                    foreach (var job in downloadManager.Jobs.Values)
+                    {
+                        if (dataGridView1.Rows[e.RowIndex].Cells[4].Value.ToString() == job.JobId.ToString())
+                        {
+                            manageJobState(dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), job);
+                        }
+                    }
+                    break;
+            }
+        }
 
+        private void manageJobState(string button, BitsJob job)
+        {
+            switch (button)
+            {
+                case "Resume":
+                    job.Resume();
+                    break;
+                case "Cancel":
+                    job.Cancel();
+                    break;
             }
         }
     }
